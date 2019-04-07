@@ -14,6 +14,11 @@ public class SVClassObjectPool<T> where T : class, new () {
         }
     }
 
+     public int Count(){
+         return m_Pool.Count;
+     } 
+
+ 
     //取对象
     /// <summary>
     /// 从池里面取类对象

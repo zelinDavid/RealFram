@@ -13,7 +13,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <BaseDirectory>.</BaseDirectory>
   </PropertyGroup>
@@ -61,6 +61,7 @@
      <Compile Include="Assets\Scripts\Data\BuffData.cs" />
      <Compile Include="Assets\Scripts\Data\MonsterData.cs" />
      <Compile Include="Assets\Scripts\Manager\GameMapManager.cs" />
+     <Compile Include="Assets\Scripts\SVTest.cs" />
      <Compile Include="Assets\Scripts\UGUI\Panel\LoadingPanel.cs" />
      <Compile Include="Assets\Scripts\UGUI\Panel\MenuPanel.cs" />
      <Compile Include="Assets\Scripts\UGUI\Window\LoadingUi.cs" />
