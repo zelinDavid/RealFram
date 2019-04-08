@@ -28,7 +28,6 @@ public class ResouceObj
     //是否放到场景节点下面
     public bool m_SetSceneParent = false;
     //实例化资源加载完成回调
-    
     public OnAsyncObjFinish m_DealFinish = null;
     //异步参数
     public object m_Param1, m_Param2, m_Param3 = null;
@@ -1007,7 +1006,7 @@ public class DoubleLinedList<T> where T : class, new()
         if (pNode == Tail)
             Tail = pNode.prev;
 
-        if (pNode.prev != null)
+        if (pNode.prev != null)`
             pNode.prev.next = pNode.next;
 
         if (pNode.next != null)

@@ -9,11 +9,11 @@ public class SVABManager :Singleton<SVABManager>
 {
     protected string m_ABConfigABName = "assetbundleconfig";
     
-    protected Dictionary<uint, SVResourceITem> m_ResouceItemDic = new Dictionary<uint, SVResourceITem>();
+    protected Dictionary<uint, SVResourceItem> m_ResouceItemDic = new Dictionary<uint, SVResourceItem>();
 
-    protected Dictionary<uint, SVAssetBundle> m_assetBundleItem = new Dictionary<uint, SVAssetBundle>();
+    protected Dictionary<uint, SVAssetBundleItem> m_AssetBundleItemDic = new Dictionary<uint, SVAssetBundleItem>();
 
-    protected SVClassObjectPool<SVAssetBundle> m_AssetBundleItemPool = SVClassPool.Instance.GetOrCreatClassPool<SVAssetBundle>(500);
+    protected SVClassObjectPool<SVAssetBundleItem> m_AssetBundleItemPool = SVClassPool.Instance.GetOrCreatClassPool<SVAssetBundleItem>(500);
 
     protected string  ABLoadPath{
         get{
@@ -41,7 +41,7 @@ public class SVABManager :Singleton<SVABManager>
         for (int i = 0; i <abCOnfig.ABList.Count; i++)
         {
             ABBase aBase = abCOnfig.ABList[i];
-            SVResourceITem item = new SVResourceITem();
+            SVResourceItem item = new SVResourceItem();
             item.m_ABName = aBase.ABName;
             item.m_AssetName = aBase.AssetName;
             item.m_Crc = aBase.Crc;
@@ -56,12 +56,99 @@ public class SVABManager :Singleton<SVABManager>
         }
         return true ;
     }
+      
+    public SVResourceItem LoadResourceAB(uint cRc){
+         if(!m_ResouceItemDic.TryGetValue(cRc, out SVResourceItem item) || item == null){
+             Debug.LogError(string.Format("can't find cRc:{0}", cRc.ToString()));
+             return null;
+         }
+ 
+        if (item.m_AssetBundle != null)
+        {
+            return item;
+        }
 
+        item.m_AssetBundle =  LoadAssetByName(item.m_ABName);
+
+        if (item.m_DependAssetBundle != null)
+        {
+            foreach (string name in item.m_DependAssetBundle)
+            {
+                LoadAssetByName(name);
+            }
+        }
+        return null;
+    }
+
+    public AssetBundle LoadAssetByName(string name){
+        uint crc = Crc32.GetCrc32(name);
+        if(m_AssetBundleItemDic.TryGetValue(crc, out SVAssetBundleItem bundle)){
+            bundle.Refcount ++;
+            return bundle.assetBundle;
+        }else{
+            string fullpath = ABLoadPath + name;
+            AssetBundle ab = AssetBundle.LoadFromFile(fullpath);
+            bundle = m_AssetBundleItemPool.Spawn(true);
+            bundle.assetBundle = ab;
+            bundle.Refcount ++;
+            m_AssetBundleItemDic.Add(crc, bundle);
+            return ab;
+        }
+    }
+
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    /// <param name="item"></param>
+    public void ReleaseAsset(ResouceItem item){
+         if (item == null)
+         {
+             return;
+         }
+         
+        bool trueRelease = UnLoadAssetBundle(item.m_ABName);
+        if (trueRelease)
+        {
+            item.m_AssetBundle = null;
+        }
+
+         foreach (string name in item.m_DependAssetBundle)
+         {
+             UnLoadAssetBundle(name);
+         }
+    }
 
     
+    private bool UnLoadAssetBundle(string name)
+    {
+        uint crc = Crc32.GetCrc32(name);
+        if(m_AssetBundleItemDic.TryGetValue(crc, out SVAssetBundleItem item) && item != null){
+            item.Refcount --;
+            if (item.Refcount < 0)
+            {
+                item.assetBundle.Unload(true);
+                item.Reset();
+                m_AssetBundleItemDic.Remove(crc);
+                m_AssetBundleItemPool.Recycle(item);
+                return true;
+            }
+        }  
+        return false;
+    }
+
+    public SVResourceItem FindResourceItem(uint crc)
+    {
+        if(m_ResouceItemDic.TryGetValue(crc, out SVResourceItem item) && item != null){
+            return item;
+        } 
+        return null;
+    }
 }
 
-public class SVAssetBundle
+
+//----------------name- ----------
+
+public class SVAssetBundleItem
 {
     public AssetBundle assetBundle;
     public int Refcount;
@@ -73,7 +160,7 @@ public class SVAssetBundle
 }
 
 
-public class SVResourceITem
+public class SVResourceItem
 {
    //资源路径的CRC
     public uint m_Crc = 0;
